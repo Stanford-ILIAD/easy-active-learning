@@ -35,20 +35,36 @@ class Sampler:
             return -np.inf
         return np.sum([self.logp(i, w, delta) for i in range(len(self.a))])
         
-    def sample(self, sample_count, burn=1000, thin=20, step_size=0.1):
-        x = np.array([0]*self.phi_num + [1]).reshape(1,-1)
-        old_logprob = self.logprob(x[0,:self.phi_num], x[0,-1])
-        for _ in range(burn + thin*sample_count):
-            new_x = x[-1] + np.random.randn(self.phi_num + 1) * step_size
-            new_logprob = self.logprob(new_x[:self.phi_num], new_x[-1])
-            if np.log(np.random.rand()) < new_logprob - old_logprob:
-                x = np.vstack((x,new_x))
-                old_logprob = new_logprob
-            else:
-                x = np.vstack((x,x[-1]))
-        x = x[burn+thin-1::thin]
-        return x[:,:self.phi_num], x[:,-1]
-
+    def sample(self, sample_count, query_type, burn=1000, thin=20, step_size=0.1):
+		if query_type == 'weak'
+			x = np.array([0]*self.phi_num + [1]).reshape(1,-1)
+			old_logprob = self.logprob(x[0,:self.phi_num], x[0,-1])
+			for _ in range(burn + thin*sample_count):
+				new_x = x[-1] + np.random.randn(self.phi_num + 1) * step_size
+				new_logprob = self.logprob(new_x[:self.phi_num], new_x[-1])
+				if np.log(np.random.rand()) < new_logprob - old_logprob:
+					x = np.vstack((x,new_x))
+					old_logprob = new_logprob
+				else:
+					x = np.vstack((x,x[-1]))
+			x = x[burn+thin-1::thin]
+			return x[:,:self.phi_num], x[:,-1]
+		elif query_type == 'strong'
+			x = np.array([0]*self.phi_num).reshape(1,-1)
+			old_logprob = self.logprob(x[0], 0)
+			for _ in range(burn + thin*sample_count):
+				new_x = x[-1] + np.random.randn(self.phi_num) * step_size
+				new_logprob = self.logprob(new_x, 0)
+				if np.log(np.random.rand()) < new_logprob - old_logprob:
+					x = np.vstack((x,new_x))
+					old_logprob = new_logprob
+				else:
+					x = np.vstack((x))
+			x = x[burn+thin-1::thin]
+			return x, np.zeros((sample_count,))
+		else:
+			print('There is no query type called ' + query_type)
+			exit(0)
 
 
 

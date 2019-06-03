@@ -4,22 +4,28 @@ import algos
 from models import Driver, LunarLander, MountainCar, Swimmer, Tosser
 
 
-def get_feedback(simulation_object, input_A, input_B):
+def get_feedback(simulation_object, input_A, input_B, query_type):
     simulation_object.feed(input_A)
     phi_A = np.array(simulation_object.get_features())
     simulation_object.feed(input_B)
     phi_B = np.array(simulation_object.get_features())
     psi = phi_A - phi_B
-    s = 0
-    while s==0:
-        selection = input('A/B to watch, 1/2 to vote, 0 for IDK: ').lower()
+    s = -2
+    while s==-2:
+		if query_type == 'weak':
+			selection = input('A/B to watch, 1/2 to vote, 0 for IDK: ').lower()
+		elif query_type == 'strong':
+			selection = input('A/B to watch, 1/2 to vote: ').lower()
+		else:
+			print('There is no query type called ' + query_type)
+			exit(0)
         if selection == 'a':
             simulation_object.feed(input_A)
             simulation_object.watch(1)
         elif selection == 'b':
             simulation_object.feed(input_B)
             simulation_object.watch(1)
-		elif selection == '0':
+		elif selection == '0' and query_type == 'weak':
 			s = 0
         elif selection == '1':
             s = -1
