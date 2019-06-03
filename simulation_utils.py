@@ -42,21 +42,15 @@ def create_env(task):
         exit(0)
 
 
-def run_algo(method, simulation_object, w_samples, b=10, B=200):
-    if method == 'nonbatch':
-        return algos.nonbatch(simulation_object, w_samples)
-    if method == 'greedy':
-        return algos.greedy(simulation_object, w_samples, b)
-    elif method == 'medoids':
-        return algos.medoids(simulation_object, w_samples, b, B)
-    elif method == 'boundary_medoids':
-        return algos.boundary_medoids(simulation_object, w_samples, b, B)
-    elif method == 'successive_elimination':
-        return algos.successive_elimination(simulation_object, w_samples, b, B)
-    elif method == 'random':
+def run_algo(criterion, simulation_object, w_samples):
+    if criterion == 'information':
+        return algos.information(simulation_object, w_samples)
+    if criterion == 'volume':
+        return algos.volume(simulation_object, w_samples)
+    elif criterion == 'random':
         return algos.random(simulation_object, w_samples)
     else:
-        print('There is no method called ' + method)
+        print('There is no criterion called ' + criterion)
         exit(0)
 
 
