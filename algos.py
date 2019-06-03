@@ -2,7 +2,7 @@ import numpy as np
 import scipy.optimize as opt
 
 def volume_objective_psi(psi_set, w_samples, delta_samples):
-	dR = w_samples.dot(psi_set.T)
+	dR = w_samples.dot(psi_set.T).squeeze()
 	p1 = 1/(1+np.exp(delta_samples - dR))
 	p2 = 1/(1+np.exp(delta_samples + dR))
 	p_Upsilon = (np.exp(2*delta_samples) - 1) * p1 * p2
@@ -10,7 +10,7 @@ def volume_objective_psi(psi_set, w_samples, delta_samples):
 	
 def information_objective_psi(psi_set, w_samples, delta_samples):
 	M = w_samples.shape[0]
-	dR = w_samples.dot(psi_set.T)
+	dR = w_samples.dot(psi_set.T).squeeze()
 	p1 = 1/(1+np.exp(delta_samples - dR))
 	p2 = 1/(1+np.exp(delta_samples + dR))
 	p_Upsilon = (np.exp(2*delta_samples) - 1) * p1 * p2
@@ -58,7 +58,7 @@ def optimize(simulation_object, w_samples, delta_samples, func):
 	lower_input_bound = [x[0] for x in simulation_object.feed_bounds]
 	upper_input_bound = [x[1] for x in simulation_object.feed_bounds]
 	opt_res = opt.fmin_l_bfgs_b(func, x0=np.random.uniform(low=2*lower_input_bound, high=2*upper_input_bound, size=(2*z)), args=(simulation_object, w_samples, delta_samples), bounds=simulation_object.feed_bounds*2, approx_grad=True)
-	return opt_res[0][0:z], opt_res[0][z:2*z]
+	return opt_res[0][:z], opt_res[0][z:]
 
 def volume(simulation_object, w_samples, delta_samples):
 	return optimize(simulation_object, w_samples, delta_samples, volume_objective)

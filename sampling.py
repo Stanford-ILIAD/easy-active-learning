@@ -59,7 +59,7 @@ class Sampler:
 					x = np.vstack((x,new_x))
 					old_logprob = new_logprob
 				else:
-					x = np.vstack((x))
+					x = np.vstack((x,x[-1]))
 			x = x[burn+thin-1::thin]
 			return x, np.zeros((sample_count,))
 		else:
