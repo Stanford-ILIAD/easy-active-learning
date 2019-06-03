@@ -12,13 +12,13 @@ def nonbatch(task, criterion, M, N):
 
     w_sampler = Sampler(d)
     for i in range(N):
-        w_samples = w_sampler.sample(M)
+        w_samples, delta_samples = w_sampler.sample(M)
         mean_w_samples = np.mean(w_samples,axis=0)
         print('w-estimate = {}'.format(mean_w_samples/np.linalg.norm(mean_w_samples)))
-        input_A, input_B = run_algo(criterion, simulation_object, w_samples)
+        input_A, input_B = run_algo(criterion, simulation_object, w_samples, delta_samples)
         phi_A, phi_B, s = get_feedback(simulation_object, input_A, input_B)
         w_sampler.feed(phi_A, phi_B, s)
-    w_samples = w_sampler.sample(M)
+    w_samples, delta_samples = w_sampler.sample(M)
     print('w-estimate = {}'.format(mean_w_samples/np.linalg.norm(mean_w_samples)))
 
 

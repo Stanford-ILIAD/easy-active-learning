@@ -44,13 +44,13 @@ def create_env(task):
         exit(0)
 
 
-def run_algo(criterion, simulation_object, w_samples):
+def run_algo(criterion, simulation_object, w_samples, delta_samples):
     if criterion == 'information':
-        return algos.information(simulation_object, w_samples)
+        return algos.information(simulation_object, w_samples, delta_samples)
     if criterion == 'volume':
-        return algos.volume(simulation_object, w_samples)
+        return algos.volume(simulation_object, w_samples, delta_samples)
     elif criterion == 'random':
-        return algos.random(simulation_object, w_samples)
+        return algos.random(simulation_object)
     else:
         print('There is no criterion called ' + criterion)
         exit(0)
