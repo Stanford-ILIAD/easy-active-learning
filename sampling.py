@@ -1,54 +1,54 @@
-import pymc as mc
 import numpy as np
-import theano as th
-import theano.tensor as tt
-import theano.tensor.nnet as tn
-from theano.ifelse import ifelse
-from scipy.stats import gaussian_kde
-from utils import matrix
 
-class Sampler(object):
-    def __init__(self, D):
-        self.D = D
-        self.Avar = matrix(0, self.D)
-        self.yvar = matrix(0, 1)
-        x = tt.vector()
-        self.f = th.function([x], -tt.sum(tn.relu(tt.dot(-tt.tile(self.yvar,[1,D])*self.Avar, x))))
-    @property
-    def A(self):
-        return self.Avar.get_value()
-    @A.setter
-    def A(self, value):
-        if len(value)==0:
-            self.Avar.set_value(np.zeros((0, self.D)))
+class Sampler:
+    def __init__(self, phi_num):
+        self.phi_num = phi_num
+        self.phi_A = np.zeros((0,self.phi_num))
+        self.phi_B = np.zeros((0,self.phi_num))
+        self.a = [] # responses (-1 for A, 1 for B, 0 for IDK)
+    
+    def feed(self, phi_A, phi_B, a):
+        phi_A = np.array(phi_A).reshape(-1, self.phi_num)
+        phi_B = np.array(phi_B).reshape(-1, self.phi_num)
+        
+        self.phi_A = np.vstack((self.phi_A, phi_A))
+        self.phi_B = np.vstack((self.phi_B, phi_B))
+        for ax in a:
+            self.a.append(ax)
+        
+    def logp(self, i, w, delta=0):
+        phi_A = self.phi_A[i]
+        phi_B = self.phi_B[i]
+        a = self.a[i]
+        
+        if a != 0:
+            phi_select = phi_A if a < 0 else phi_B
+            phi_nonsel = phi_B if a < 0 else phi_A
+            psi = phi_nonsel - phi_select
+            return np.log(1 / (1 + np.exp(delta + psi.dot(w))))
         else:
-            self.Avar.set_value(np.asarray(value))
-    @property
-    def y(self):
-        return self.yvar.get_value()
-    @y.setter
-    def y(self, value):
-        if len(value)==0:
-            self.yvar.set_value(np.zeros((0, 1)))
-        else:
-            self.yvar.set_value(np.asarray(value))
-
-    def sample(self, N, T=50, burn=1000):
-        x = mc.Uniform('x', -np.ones(self.D), np.ones(self.D), value=np.zeros(self.D))
-        def sphere(x):
-            if (x**2).sum()>=1.:
-                return -np.inf
+            psi = phi_A - phi_B
+            return np.log((np.exp(2*delta)-1) / (1 + np.exp(delta + psi.dot(w)) + np.exp(delta - psi.dot(w)) + np.exp(2*delta)))
+        
+    def logprob(self, w, delta=0):
+        if np.sum(w**2) > 1 or delta < 0:
+            return -np.inf
+        return np.sum([self.logp(i, w, delta) for i in range(len(self.a))])
+        
+    def sample(self, sample_count, burn=1000, thin=20, step_size=0.1):
+        x = np.array([0]*self.phi_num + [1]).reshape(1,-1)
+        old_logprob = self.logprob(x[0,:self.phi_num], x[0,-1])
+        for _ in range(burn + thin*sample_count):
+            new_x = x[-1] + np.random.randn(self.phi_num + 1) * step_size
+            new_logprob = self.logprob(new_x[:self.phi_num], new_x[-1])
+            if np.log(np.random.rand()) < new_logprob - old_logprob:
+                x = np.vstack((x,new_x))
+                old_logprob = new_logprob
             else:
-                return self.f(x)
-        p1 = mc.Potential(
-            logp = sphere,
-            name = 'sphere',
-            parents = {'x': x},
-            doc = 'Sphere potential',
-            verbose = 0)
-        chain = mc.MCMC([x])
-        chain.use_step_method(mc.AdaptiveMetropolis, x, delay=burn, cov=np.eye(self.D)/10000)
-        chain.sample(N*T+burn, thin=T, burn=burn, verbose=-1)
-        samples = x.trace()
-        samples = np.array([x/np.linalg.norm(x) for x in samples])
-        return samples
+                x = np.vstack((x,x[-1]))
+        x = x[burn+thin-1::thin]
+        return x[:,:self.phi_num], x[:,-1]
+
+
+
+

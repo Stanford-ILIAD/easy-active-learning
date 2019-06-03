@@ -6,24 +6,26 @@ from models import Driver, LunarLander, MountainCar, Swimmer, Tosser
 
 def get_feedback(simulation_object, input_A, input_B):
     simulation_object.feed(input_A)
-    phi_A = simulation_object.get_features()
+    phi_A = np.array(simulation_object.get_features())
     simulation_object.feed(input_B)
-    phi_B = simulation_object.get_features()
-    psi = np.array(phi_A) - np.array(phi_B)
+    phi_B = np.array(simulation_object.get_features())
+    psi = phi_A - phi_B
     s = 0
     while s==0:
-        selection = input('A/B to watch, 1/2 to vote: ').lower()
+        selection = input('A/B to watch, 1/2 to vote, 0 for IDK: ').lower()
         if selection == 'a':
             simulation_object.feed(input_A)
             simulation_object.watch(1)
         elif selection == 'b':
             simulation_object.feed(input_B)
             simulation_object.watch(1)
+		elif selection == '0':
+			s = 0
         elif selection == '1':
-            s = 1
-        elif selection == '2':
             s = -1
-    return psi, s
+        elif selection == '2':
+            s = 1
+    return phi_A, phi_B, s
 
 
 def create_env(task):
