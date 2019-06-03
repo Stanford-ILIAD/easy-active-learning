@@ -8,8 +8,6 @@ You need to have the following libraries with [Python3](http://www.python.org/do
 - [NumPy](https://www.numpy.org/)
 - [OpenAI Gym](https://gym.openai.com)
 - [pyglet](https://bitbucket.org/pyglet/pyglet/wiki/Home)
-- PYMC
-- [Scikit-learn](https://scikit-learn.org)
 - [SciPy](https://www.scipy.org/)
 - [theano](http://deeplearning.net/software/theano/)
 
