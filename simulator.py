@@ -33,6 +33,46 @@ class Simulation(object):
         self.ctrl_array = value.copy()
         self.run(reset=False)
 
+		
+class LDSSimulation(Simulation):
+    def __init__(self, name, total_time=25, recording_time=[0,25]):
+        super(LDSSimulation, self).__init__(name, total_time=total_time, recording_time=recording_time)
+        self.initial_state = np.array([0,0,0,0,0,0], dtype=np.float32)
+        self.input_size = 3
+        self.reset()
+
+    def initialize_positions(self):
+        self._state = self.initial_state.copy() 
+
+    def reset(self):
+        super(LDSSimulation, self).reset()
+        self.initialize_positions()
+
+    def run(self, reset=False):
+        if reset:
+            self.reset()
+        else:
+            self.initialize_positions()
+        for i in range(self.total_time):
+            self._state[0] = self._state[0] + self._state[1]
+            self._state[1] = self._state[1] + self.ctrl_array[i][0]
+            self._state[2] = self._state[2] + 0.5*self._state[3]
+            self._state[3] = self._state[3] + 0.3*self.ctrl_array[i][1]
+            self._state[4] = self._state[4] + 1.2*self._state[5]
+            self._state[5] = self._state[5] + 1.5*self.ctrl_array[i][2]
+            self.trajectory.append([self._state[i] for i in range(6)])
+        self.alreadyRun = True
+
+    # I keep all_info variable for the compatibility with mujoco wrapper
+    def get_trajectory(self, all_info=True):
+        if not self.alreadyRun:
+            self.run()
+        return self.trajectory.copy()
+
+    def get_recording(self, all_info=True):
+        traj = self.get_trajectory(all_info=all_info)
+        return traj[self.recording_time[0]:self.recording_time[1]]
+
 
 class MujocoSimulation(Simulation):
     def __init__(self, name, total_time=1000, recording_time=[0,1000]):

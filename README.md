@@ -15,7 +15,7 @@ You need to have the following libraries with [Python3](http://www.python.org/do
 
 ## Running
 Throughout this demo,
-- [task_name] should be selected as one of the following: Driver, LunarLander, MountainCar, Swimmer, Tosser, Fetch
+- [task_name] should be selected as one of the following: Driver, LunarLander, MountainCar, Swimmer, Tosser, LDS
 - [criterion] should be selected as one of the following: information, volume, random
 - [query_type] should be selected as one of the following: weak, strong
 For the details and positive integer parameters c, M, N; we refer to the publication.

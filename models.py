@@ -1,5 +1,54 @@
-from simulator import DrivingSimulation, GymSimulation, MujocoSimulation
+from simulator import DrivingSimulation, GymSimulation, MujocoSimulation, LDSSimulation
 import numpy as np
+
+
+class LDS(LDSSimulation):
+    def __init__(self, total_time=25, recording_time=[0,25]):
+        super(LDS, self).__init__(name='lds', total_time=total_time, recording_time=recording_time)
+        self.ctrl_size = 5
+        self.state_size = 0
+        self.feed_size = self.ctrl_size + self.state_size
+        self.ctrl_bounds = [(-0.1,0.1,-0.2,0.2,-0.1,0.1)]*self.ctrl_size
+        self.state_bounds = []
+        self.feed_bounds = self.state_bounds + self.ctrl_bounds
+        self.num_of_features = 6
+
+    def get_features(self):
+        recording = self.get_recording(all_info=False)
+        recording = np.array(recording)
+
+        # speed (lower is better)
+        speed1 = np.mean(np.abs(recording[:,1]))
+        speed2 = np.mean(np.abs(recording[:,3]))
+        speed3 = np.mean(np.abs(recording[:,5]))
+
+        # distance to the desired position (lower is better)
+        distance1 = np.mean(np.abs(recording[:,0]-1))
+        distance2 = np.mean(np.abs(recording[:,2]-1))
+        distance3 = np.mean(np.abs(recording[:,4]-1))
+
+        return [3*speed1, 3*distance1, 3*speed2, 3*distance2, 3*speed3, 3*distance3]
+
+    @property
+    def state(self):
+        return [self._state[i] for i in range(6)]
+    @state.setter
+    def state(self, value):
+        self.reset()
+        self.initial_state = value.copy()
+
+    def set_ctrl(self, value):
+        arr = [[0]*self.input_size]*self.total_time
+        interval_count = len(value)
+        interval_time = int(self.total_time / interval_count)
+        arr = np.array(arr).astype(float)
+        for i in range(interval_count):
+            arr[i*interval_time:(i+1)*interval_time] = value[i]
+        self.ctrl = list(arr)
+
+    def feed(self, value):
+        ctrl_value = value[:]
+        self.set_ctrl(ctrl_value)
 
 
 
