@@ -15,7 +15,7 @@ def information_objective_psi(psi_set, w_samples, delta_samples):
 	p2 = 1/(1+np.exp(delta_samples + dR))
 	p_Upsilon = (np.exp(2*delta_samples) - 1) * p1 * p2
 	
-	return 1.0/M * (np.sum(p1*np.log2(M*p1 / p1.sum(axis=0)), axis=0) + np.sum(p2*np.log2(M*p2 / p2.sum(axis=0)), axis=0) + np.sum(p_Upsilon*np.log2(M*p_Upsilon / p_Upsilon.sum(axis=0)), axis=0))
+	return -1.0/M * (np.sum(p1*np.log2(M*p1 / p1.sum(axis=0)), axis=0) + np.sum(p2*np.log2(M*p2 / p2.sum(axis=0)), axis=0) + np.sum(p_Upsilon*np.log2(M*p_Upsilon / p_Upsilon.sum(axis=0)), axis=0))
 
 def generate_psi(simulation_object, inputs_set):
 	z = simulation_object.feed_size

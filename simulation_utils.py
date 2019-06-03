@@ -1,13 +1,15 @@
 import numpy as np
 import scipy.optimize as opt
 import algos
-from models import Driver, LunarLander, MountainCar, Swimmer, Tosser
+from models import Driver, LunarLander, MountainCar, Swimmer, Tosser, LDS
 
 # w_driver = [0.32869792, -0.13381809, 0.34833876, -0.67377869]
 def simulate_human(phi_A, phi_B, w, delta, query_type):
 	p = np.random.rand()
-	pA = 1. / np.exp(delta - w.dot(phi_A - phi_B))
-	pB = 1. / np.exp(delta + w.dot(phi_A - phi_B))
+	pA = 1. / (1 + np.exp(delta - w.dot(phi_A - phi_B)))
+	pB = 1. / (1 + np.exp(delta + w.dot(phi_A - phi_B)))
+	print(w.dot(phi_A - phi_B))
+	print(1-pA-pB)
 	if query_type == 'strong':
 		pA = pA / (pA + pB)
 		pB = 1 - pA
@@ -54,7 +56,9 @@ def get_feedback(simulation_object, input_A, input_B, query_type, true_w=None, t
 
 
 def create_env(task):
-	if task == 'driver':
+	if task == 'lds':
+		return LDS()
+	elif task == 'driver':
 		return Driver()
 	elif task == 'lunarlander':
 		return LunarLander()

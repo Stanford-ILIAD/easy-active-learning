@@ -7,8 +7,8 @@ class LDS(LDSSimulation):
         super(LDS, self).__init__(name='lds', total_time=total_time, recording_time=recording_time)
         self.ctrl_size = 5
         self.state_size = 0
-        self.feed_size = self.ctrl_size + self.state_size
-        self.ctrl_bounds = [(-0.1,0.1,-0.2,0.2,-0.1,0.1)]*self.ctrl_size
+        self.feed_size = self.ctrl_size*self.input_size + self.state_size
+        self.ctrl_bounds = [(-0.1,0.1),(-0.2,0.2),(-0.1,0.1)]*self.ctrl_size
         self.state_bounds = []
         self.feed_bounds = self.state_bounds + self.ctrl_bounds
         self.num_of_features = 6

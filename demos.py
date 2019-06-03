@@ -11,10 +11,11 @@ def nonbatch(task, criterion, query_type, c, M, N, simulated_user=False):
 	true_w = None
 	true_delta = None
 	if simulated_user:
-		#true_w = np.random.rand(d)
-		true_w = np.array([0.32869792, -0.13381809, 0.34833876, -0.67377869])
+		true_w = np.random.rand(d)
+		#true_w = np.array([0.32869792, -0.13381809, 0.34833876, -0.67377869])
 		true_w = true_w / np.linalg.norm(true_w)
-		true_delta = np.random.rand()
+		true_delta = 10*np.random.rand()
+		print(true_delta)
 
 	lower_input_bound = [x[0] for x in simulation_object.feed_bounds]
 	upper_input_bound = [x[1] for x in simulation_object.feed_bounds]
