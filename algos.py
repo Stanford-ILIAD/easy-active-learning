@@ -51,6 +51,7 @@ def information_objective(inputs_set, *args):
 	w_samples = args[1]
 	delta_samples = args[2]
 	psi_set = generate_psi(simulation_object, inputs_set)
+	print(inputs_set)
 	return information_objective_psi(psi_set, w_samples, delta_samples)
 
 def optimize(simulation_object, w_samples, delta_samples, func):

@@ -8,8 +8,10 @@ import numpy as np
 from world import World
 import car
 import dynamics
-import visualize
+#import visualize
 import lane
+
+import fetch_gym
 
 
 class Simulation(object):
@@ -271,3 +273,71 @@ class DrivingSimulation(Simulation):
             self.viewer.run_modified(history_x=[self.robot_history_x, self.human_history_x], history_u=[self.robot_history_u, self.human_history_u])
         self.viewer.window.close()
         self.viewer = None
+
+
+
+class FetchSimulation(Simulation):
+    def __init__(self, total_time=152, recording_time=[0,152]):
+        super(FetchSimulation, self).__init__(name='Fetch', total_time=total_time, recording_time=recording_time)
+        self.sim = gym.make('FetchReachAL-v0')
+        self.seed_value = 0
+        self.reset_seed()
+        self.sim.reset()
+        self.done = False
+        self.initial_state = None
+        self.input_size = len(self.sim.action_space.low)
+        self.effective_total_time = total_time
+        self.effective_recording_time = recording_time.copy()
+        # child class will call reset(), because it knows what state_size is
+
+    def reset(self):
+        super(FetchSimulation, self).reset()
+
+    def run(self, reset=False): # I keep reset variable for the compatilibity with mujoco wrapper
+        self.sim.reset()
+        self.trajectory = []
+        for i in range(self.total_time):
+            temp = self.sim.step(np.array(self.ctrl_array[i]))
+            self.done = temp[2]
+            self.trajectory.append(temp[0])
+            if self.done:
+                break
+        self.effective_total_time = len(self.trajectory)
+        self.effective_recording_time[1] = min(self.effective_total_time, self.recording_time[1])
+        self.alreadyRun = True
+
+    # I keep all_info variable for the compatibility with mujoco wrapper
+    def get_trajectory(self, all_info=True):
+        if not self.alreadyRun:
+            self.run()
+        return self.trajectory.copy()
+
+    def get_recording(self, all_info=True):
+        traj = self.get_trajectory(all_info=all_info)
+        return traj[self.effective_recording_time[0]:self.effective_recording_time[1]]
+
+    def watch(self, repeat_count=4):
+        for _ in range(repeat_count):
+            self.state = self.initial_state
+            for i in range(self.total_time):
+                temp = self.sim.step(np.array(self.ctrl_array[i]))
+                self.sim.render()
+                time.sleep(self.frame_delay_ms/1000.0)
+                self.done = temp[2]
+                if self.done:
+                    break
+        self.run() # so that the trajectory will be compatible with what user watches
+        #self.sim.close() # this thing prevents any further viewing, pff.
+
+    def close(self): # run only when you dont need the simulation anymore
+        self.sim.close()
+
+    @property
+    def seed(self):
+        return self.seed_value
+    @seed.setter
+    def seed(self, value=0):
+        self.seed_value = value
+        self.sim.seed(self.seed_value)
+    def reset_seed(self):
+        self.sim.seed(self.seed_value)

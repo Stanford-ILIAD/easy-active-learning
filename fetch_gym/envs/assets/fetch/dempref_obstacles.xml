@@ -1,0 +1,12 @@
+<mujoco>
+ <body pos="1.5 0.75 0.1" name="table">
+     <geom size="0.3 0.706 0.3" type="box" mass="2000" rgba="0.63 0.32 0.18 1"></geom>
+ </body>
+ <body pos="1.55 0.9 .53" name="boxobstacle">
+     <geom size="0.2 0.2 0.44" type="box" mass="2000" rgba="0.66 0.66 0.66 1"></geom>
+ </body>
+    <body pos="1.4 0.5 0.4" name="goal">
+     <geom size="0.065 0.05 0.01" type="box" mass="2000" rgba="1 0 0 1"></geom>
+ </body>
+
+</mujoco>

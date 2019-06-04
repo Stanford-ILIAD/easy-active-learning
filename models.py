@@ -1,4 +1,4 @@
-from simulator import DrivingSimulation, GymSimulation, MujocoSimulation, LDSSimulation
+from simulator import DrivingSimulation, GymSimulation, MujocoSimulation, LDSSimulation, FetchSimulation
 import numpy as np
 
 
@@ -344,4 +344,52 @@ class Tosser(MujocoSimulation):
         initial_state = value[0:self.state_size]
         ctrl_value = value[self.state_size:self.feed_size]
         self.initial_state.qpos[:] = initial_state
+        self.set_ctrl(ctrl_value)
+
+
+
+class Fetch(FetchSimulation):
+    def __init__(self, total_time=152, recording_time=[0,152]):
+        super(Fetch ,self).__init__(total_time=total_time, recording_time=recording_time)
+        self.ctrl_size = 7*19
+        self.state_size = 0
+        self.feed_size = self.ctrl_size + self.state_size
+        self.ctrl_bounds = [(-1,1)]*self.ctrl_size
+        self.state_bounds = [(-np.pi/2,np.pi/2)]*self.state_size
+        self.feed_bounds = self.state_bounds + self.ctrl_bounds
+        self.num_of_features = 4
+
+    def get_features(self):
+        recording = self.get_recording(all_info=False)
+        recording = np.array(recording)
+        f1 = np.mean(recording[:,0])
+        f2 = np.mean(recording[:,1])
+        f3 = np.mean(recording[:,2])
+        f4 = np.mean(recording[:,3])
+
+        return [f1, f2, f3, f4]
+
+    @property
+    def state(self):
+        assert False
+        return -1
+    @state.setter
+    def state(self, value):
+        assert False
+
+    def set_ctrl(self, value):
+        arr = [[0]*self.input_size]*self.total_time
+        interval_count = len(value)//self.input_size
+        interval_time = int(self.total_time / interval_count)
+        arr = np.array(arr).astype(float)
+        j = 0
+        for i in range(interval_count):
+            arr[i*interval_time:(i+1)*interval_time] = [value[j+i] for i in range(7)]
+            j += 7
+        self.ctrl = list(arr)
+
+    def feed(self, value):
+        initial_state = value[0:self.state_size]
+        ctrl_value = value[self.state_size:self.feed_size]
+        self.sim.reset()
         self.set_ctrl(ctrl_value)

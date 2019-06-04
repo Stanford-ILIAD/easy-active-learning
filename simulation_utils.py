@@ -1,7 +1,7 @@
 import numpy as np
 import scipy.optimize as opt
 import algos
-from models import Driver, LunarLander, MountainCar, Swimmer, Tosser, LDS
+from models import Driver, LunarLander, MountainCar, Swimmer, Tosser, LDS, Fetch
 
 # w_driver = [0.32869792, -0.13381809, 0.34833876, -0.67377869]
 def simulate_human(phi_A, phi_B, w, delta, query_type):
@@ -67,6 +67,8 @@ def create_env(task):
 		return Swimmer()
 	elif task == 'tosser':
 		return Tosser()
+	elif task == 'fetch':
+		return Fetch()
 	else:
 		print('There is no task called ' + task)
 		exit(0)

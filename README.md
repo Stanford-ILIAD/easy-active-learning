@@ -4,7 +4,7 @@ Companion code to CoRL 2019 submission.
 
 ## Dependencies
 You need to have the following libraries with [Python3](http://www.python.org/downloads):
-- [MuJoCo 1.50](http://www.mujoco.org/index.html)
+- [MuJoCo 2.0](http://www.mujoco.org/index.html)
 - [NumPy](https://www.numpy.org/)
 - [OpenAI Gym](https://gym.openai.com)
 - [pyglet](https://bitbucket.org/pyglet/pyglet/wiki/Home)
