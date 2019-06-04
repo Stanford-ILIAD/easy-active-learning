@@ -6,13 +6,12 @@ from models import Driver, LunarLander, MountainCar, Swimmer, Tosser, LDS
 # w_driver = [0.32869792, -0.13381809, 0.34833876, -0.67377869]
 def simulate_human(phi_A, phi_B, w, delta, query_type):
 	p = np.random.rand()
+	if query_type == 'strong':
+		delta = 0
 	pA = 1. / (1 + np.exp(delta - w.dot(phi_A - phi_B)))
 	pB = 1. / (1 + np.exp(delta + w.dot(phi_A - phi_B)))
 	print(w.dot(phi_A - phi_B))
 	print(1-pA-pB)
-	if query_type == 'strong':
-		pA = pA / (pA + pB)
-		pB = 1 - pA
 	if p < pA:
 		return -1
 	elif p < pA + pB:
