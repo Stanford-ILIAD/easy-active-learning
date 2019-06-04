@@ -75,10 +75,10 @@ def optimize_discrete(simulation_object, w_samples, delta_samples, func):
 	return opt_res[0][:z], opt_res[0][z:], -opt_res[1]
 
 def volume(simulation_object, w_samples, delta_samples):
-	return optimize(simulation_object, w_samples, delta_samples, volume_objective)
+	return optimize_discrete(simulation_object, w_samples, delta_samples, volume_objective)
 	
 def information(simulation_object, w_samples, delta_samples):
-	return optimize(simulation_object, w_samples, delta_samples, information_objective)
+	return optimize_discrete(simulation_object, w_samples, delta_samples, information_objective)
 
 def random(simulation_object):
 	lower_input_bound = [x[0] for x in simulation_object.feed_bounds]
