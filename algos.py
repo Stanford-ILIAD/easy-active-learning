@@ -59,7 +59,7 @@ def optimize(simulation_object, w_samples, delta_samples, func):
 	lower_input_bound = [x[0] for x in simulation_object.feed_bounds]
 	upper_input_bound = [x[1] for x in simulation_object.feed_bounds]
 	opt_res = opt.fmin_l_bfgs_b(func, x0=np.random.uniform(low=2*lower_input_bound, high=2*upper_input_bound, size=(2*z)), args=(simulation_object, w_samples, delta_samples), bounds=simulation_object.feed_bounds*2, approx_grad=True)
-	return opt_res[0][:z], opt_res[0][z:]
+	return opt_res[0][:z], opt_res[0][z:], opt_res[1]
 
 def volume(simulation_object, w_samples, delta_samples):
 	return optimize(simulation_object, w_samples, delta_samples, volume_objective)
@@ -72,4 +72,4 @@ def random(simulation_object):
 	upper_input_bound = [x[1] for x in simulation_object.feed_bounds]
 	input_A = np.random.uniform(low=2*lower_input_bound, high=2*upper_input_bound, size=(2*simulation_object.feed_size))
 	input_B = np.random.uniform(low=2*lower_input_bound, high=2*upper_input_bound, size=(2*simulation_object.feed_size))
-	return input_A, input_B
+	return input_A, input_B, np.inf
