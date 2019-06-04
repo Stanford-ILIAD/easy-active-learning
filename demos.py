@@ -29,10 +29,11 @@ def nonbatch(task, criterion, query_type, c, M, N, simulated_user=False):
 		print('w-estimate = {}'.format(mean_w_samples/np.linalg.norm(mean_w_samples)))
 		if true_w is not None:
 			print('m = {}'.format(np.mean(w_samples.dot(true_w)/np.linalg.norm(w_samples, axis=1))))
-		input_A, input_B, score = run_algo(criterion, simulation_object, w_samples, delta_samples)			
-		phi_A, phi_B, s = get_feedback(simulation_object, input_A, input_B, query_type, true_w, true_delta)
-		w_sampler.feed(phi_A, phi_B, [s])
-		i += 1
+		input_A, input_B, score = run_algo(criterion, simulation_object, w_samples, delta_samples)
+		if score > c:
+			phi_A, phi_B, s = get_feedback(simulation_object, input_A, input_B, query_type, true_w, true_delta)
+			w_sampler.feed(phi_A, phi_B, [s])
+			i += 1
 	w_samples, delta_samples = w_sampler.sample(M, query_type)
 	print('w-estimate = {}'.format(mean_w_samples/np.linalg.norm(mean_w_samples)))
 	if true_w is not None:
