@@ -10,8 +10,9 @@ def simulate_human(phi_A, phi_B, w, delta, query_type):
 		delta = 0
 	pA = 1. / (1 + np.exp(delta - w.dot(phi_A - phi_B)))
 	pB = 1. / (1 + np.exp(delta + w.dot(phi_A - phi_B)))
-	print(w.dot(phi_A - phi_B))
-	print(1-pA-pB)
+	print('pA = ' + str(pA))
+	print('p0 = ' + str(1-pA-pB))
+	print('pB = ' + str(pB))
 	if p < pA:
 		return -1
 	elif p < pA + pB:
@@ -93,7 +94,7 @@ def func(ctrl_array, *args):
 	features = simulation_object.get_features()
 	return -np.mean(np.array(features).dot(w))
 
-def perform_best(simulation_object, w, iter_count=10):
+def compute_best(simulation_object, w, iter_count=10):
 	u = simulation_object.ctrl_size
 	lower_ctrl_bound = [x[0] for x in simulation_object.ctrl_bounds]
 	upper_ctrl_bound = [x[1] for x in simulation_object.ctrl_bounds]
@@ -103,6 +104,10 @@ def perform_best(simulation_object, w, iter_count=10):
 		if temp_res[1] < opt_val:
 			optimal_ctrl = temp_res[0]
 			opt_val = temp_res[1]
+	print(-opt_val)
+	return optimal_ctrl
+
+def play(simulation_object, optimal_ctrl):
 	simulation_object.set_ctrl(optimal_ctrl)
 	keep_playing = 'y'
 	while keep_playing == 'y':
@@ -110,4 +115,4 @@ def perform_best(simulation_object, w, iter_count=10):
 		simulation_object.watch(1)
 		while keep_playing != 'n' and keep_playing != 'y':
 			keep_playing = input('Again? [y/n]: ').lower()
-	return -opt_val
+	return optimal_ctrl

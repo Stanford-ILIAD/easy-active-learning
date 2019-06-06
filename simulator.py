@@ -1,4 +1,4 @@
-#from mujoco_py import load_model_from_path, MjSim, MjViewer
+from mujoco_py import load_model_from_path, MjSim, MjViewer
 import os
 
 import gym
@@ -8,7 +8,7 @@ import numpy as np
 from world import World
 import car
 import dynamics
-#import visualize
+import visualize
 import lane
 
 import fetch_gym
@@ -284,7 +284,7 @@ class FetchSimulation(Simulation):
         self.reset_seed()
         self.sim.reset()
         self.done = False
-        self.initial_state = None
+        self.initial_state = self.sim.sim.get_state()
         self.input_size = len(self.sim.action_space.low)
         self.effective_total_time = total_time
         self.effective_recording_time = recording_time.copy()

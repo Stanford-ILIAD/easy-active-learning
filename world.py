@@ -3,7 +3,7 @@ import car
 import math
 import feature
 import dynamics
-#import visualize
+import visualize
 import utils_driving as utils
 import sys
 import theano as th

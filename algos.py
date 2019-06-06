@@ -2,20 +2,25 @@ import numpy as np
 import scipy.optimize as opt
 
 def volume_objective_psi(psi_set, w_samples, delta_samples):
-	dR = w_samples.dot(psi_set.T).squeeze()
+	delta_samples = delta_samples.reshape(-1,1)
+	dR = w_samples.dot(psi_set.T)
 	p1 = 1/(1+np.exp(delta_samples - dR))
 	p2 = 1/(1+np.exp(delta_samples + dR))
 	p_Upsilon = (np.exp(2*delta_samples) - 1) * p1 * p2
 	return p1.sum(axis=0)**2 + p2.sum(axis=0)**2 + p_Upsilon.sum(axis=0)**2
 	
 def information_objective_psi(psi_set, w_samples, delta_samples):
+	delta_samples = delta_samples.reshape(-1,1)
 	M = w_samples.shape[0]
-	dR = w_samples.dot(psi_set.T).squeeze()
+	dR = w_samples.dot(psi_set.T)
 	p1 = 1/(1+np.exp(delta_samples - dR))
 	p2 = 1/(1+np.exp(delta_samples + dR))
 	p_Upsilon = (np.exp(2*delta_samples) - 1) * p1 * p2
 	
-	return -1.0/M * (np.sum(p1*np.log2(M*p1 / p1.sum(axis=0)), axis=0) + np.sum(p2*np.log2(M*p2 / p2.sum(axis=0)), axis=0) + np.sum(p_Upsilon*np.log2(M*p_Upsilon / p_Upsilon.sum(axis=0)), axis=0))
+	if delta_samples.sum(axis=0) > 0:
+		return -1.0/M * (np.sum(p1*np.log2(M*p1 / p1.sum(axis=0)), axis=0) + np.sum(p2*np.log2(M*p2 / p2.sum(axis=0)), axis=0) + np.sum(p_Upsilon*np.log2(M*p_Upsilon / p_Upsilon.sum(axis=0)), axis=0))
+	else:
+		return -1.0/M * (np.sum(p1*np.log2(M*p1 / p1.sum(axis=0)), axis=0) + np.sum(p2*np.log2(M*p2 / p2.sum(axis=0)), axis=0))
 
 def generate_psi(simulation_object, inputs_set):
 	z = simulation_object.feed_size
@@ -51,7 +56,6 @@ def information_objective(inputs_set, *args):
 	w_samples = args[1]
 	delta_samples = args[2]
 	psi_set = generate_psi(simulation_object, inputs_set)
-	print(inputs_set)
 	return information_objective_psi(psi_set, w_samples, delta_samples)
 
 def optimize(simulation_object, w_samples, delta_samples, func):
@@ -59,28 +63,36 @@ def optimize(simulation_object, w_samples, delta_samples, func):
 	lower_input_bound = [x[0] for x in simulation_object.feed_bounds]
 	upper_input_bound = [x[1] for x in simulation_object.feed_bounds]
 	opt_res = opt.fmin_l_bfgs_b(func, x0=np.random.uniform(low=2*lower_input_bound, high=2*upper_input_bound, size=(2*z)), args=(simulation_object, w_samples, delta_samples), bounds=simulation_object.feed_bounds*2, approx_grad=True)
-	return opt_res[0][:z], opt_res[0][z:], -opt_res[1]
+	return opt_res[0][:z], opt_res[0][z:], np.abs(opt_res[1])
 	
 def optimize_discrete(simulation_object, w_samples, delta_samples, func):
 	d = simulation_object.num_of_features
-    z = simulation_object.feed_size
+	z = simulation_object.feed_size
 
-    data = np.load('ctrl_samples/' + simulation_object.name + '.npz')
-    inputs_set = data['inputs_set']
-    psi_set = data['psi_set']
-    f_values = func(psi_set, w_samples, delta_samples)
-    id_input = np.argmin(f_values)
-    return inputs_set[id_input,0], inputs_set[id_input,1], -f_values[id_input]
-	
-	return opt_res[0][:z], opt_res[0][z:], -opt_res[1]
+	data = np.load('ctrl_samples/' + simulation_object.name + '.npz')
+	inputs_set = data['inputs_set']
+	psi_set = data['psi_set']
+	f_values = func(psi_set, w_samples, delta_samples)
+	id_input = np.argmin(f_values)
+	print('ID = ' + str(id_input))
+	print('pss = ' + str(psi_set[id_input]))
+	return inputs_set[id_input,:z], inputs_set[id_input,z:], np.abs(f_values[id_input])
 
 def volume(simulation_object, w_samples, delta_samples):
-	return optimize_discrete(simulation_object, w_samples, delta_samples, volume_objective)
+	#return optimize(simulation_object, w_samples, delta_samples, volume_objective)
+	return optimize_discrete(simulation_object, w_samples, delta_samples, volume_objective_psi)
 	
 def information(simulation_object, w_samples, delta_samples):
-	return optimize_discrete(simulation_object, w_samples, delta_samples, information_objective)
+	#return optimize(simulation_object, w_samples, delta_samples, information_objective)
+	return optimize_discrete(simulation_object, w_samples, delta_samples, information_objective_psi)
 
 def random(simulation_object):
+	data = np.load('ctrl_samples/' + simulation_object.name + '.npz')
+	inputs_set = data['inputs_set']
+	id_input = np.random.choice(inputs_set.shape[0])
+	return inputs_set[id_input,:z], inputs_set[id_input,z:], np.inf
+
+def random_continuous(simulation_object):
 	lower_input_bound = [x[0] for x in simulation_object.feed_bounds]
 	upper_input_bound = [x[1] for x in simulation_object.feed_bounds]
 	input_A = np.random.uniform(low=2*lower_input_bound, high=2*upper_input_bound, size=(2*simulation_object.feed_size))

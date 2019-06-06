@@ -66,5 +66,22 @@ class Sampler:
 			print('There is no query type called ' + query_type)
 			exit(0)
 
+	def sample_given_delta(self, sample_count, query_type, delta, burn=1000, thin=20, step_size=0.1):
+		assert query_type in ['strong','weak'], 'There is no query type called ' + query_type
+		if query_type == 'strong':
+			delta = 0
+		assert delta >= 0
 
+		x = np.array([0]*self.phi_num).reshape(1,-1)
+		old_logprob = self.logprob(x[0], delta)
+		for _ in range(burn + thin*sample_count):
+			new_x = x[-1] + np.random.randn(self.phi_num) * step_size
+			new_logprob = self.logprob(new_x, delta)
+			if np.log(np.random.rand()) < new_logprob - old_logprob:
+				x = np.vstack((x,new_x))
+				old_logprob = new_logprob
+			else:
+				x = np.vstack((x,x[-1]))
+		x = x[burn+thin-1::thin]
+		return x, delta * np.ones((x.shape[0],))
 

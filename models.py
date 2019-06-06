@@ -18,16 +18,16 @@ class LDS(LDSSimulation):
         recording = np.array(recording)
 
         # speed (lower is better)
-        speed1 = np.mean(np.abs(recording[:,1]))
-        speed2 = np.mean(np.abs(recording[:,3]))
-        speed3 = np.mean(np.abs(recording[:,5]))
+        speed1 = 3*np.mean(np.abs(recording[:,1])) / 0.3805254
+        speed2 = 3*np.mean(np.abs(recording[:,3])) / 0.11415762
+        speed3 = 3*np.mean(np.abs(recording[:,5])) / 0.5707881
 
         # distance to the desired position (lower is better)
-        distance1 = np.mean(np.abs(recording[:,0]-1))
-        distance2 = np.mean(np.abs(recording[:,2]-1))
-        distance3 = np.mean(np.abs(recording[:,4]-1))
+        distance1 = 3*np.mean(np.abs(recording[:,0]-1)) / 4.072655
+        distance2 = 3*np.mean(np.abs(recording[:,2]-1)) / 0.94199475
+        distance3 = 3*np.mean(np.abs(recording[:,4]-1)) / 7.10111927
 
-        return [3*speed1, 3*distance1, 3*speed2, 3*distance2, 3*speed3, 3*distance3]
+        return [speed1, distance1, speed2, distance2, speed3, distance3]
 
     @property
     def state(self):
@@ -68,16 +68,16 @@ class Driver(DrivingSimulation):
         recording = np.array(recording)
 
         # staying in lane (higher is better)
-        staying_in_lane = np.mean(np.exp(-30*np.min([np.square(recording[:,0,0]-0.17), np.square(recording[:,0,0]), np.square(recording[:,0,0]+0.17)], axis=0)))
+        staying_in_lane = np.mean(np.exp(-30*np.min([np.square(recording[:,0,0]-0.17), np.square(recording[:,0,0]), np.square(recording[:,0,0]+0.17)], axis=0))) / 0.15343634
 
         # keeping speed (lower is better)
-        keeping_speed = np.mean(np.square(recording[:,0,3]-1))
+        keeping_speed = np.mean(np.square(recording[:,0,3]-1)) / 0.42202643
 
         # heading (higher is better)
-        heading = np.mean(np.sin(recording[:,0,2]))
+        heading = np.mean(np.sin(recording[:,0,2])) / 0.06112367
 
         # collision avoidance (lower is better)
-        collision_avoidance = np.mean(np.exp(-(7*np.square(recording[:,0,0]-recording[:,1,0])+3*np.square(recording[:,0,1]-recording[:,1,1]))))
+        collision_avoidance = np.mean(np.exp(-(7*np.square(recording[:,0,0]-recording[:,1,0])+3*np.square(recording[:,0,1]-recording[:,1,1])))) / 0.15258019
 
         return [staying_in_lane, keeping_speed, heading, collision_avoidance]
 
@@ -311,16 +311,16 @@ class Tosser(MujocoSimulation):
         recording = np.array(recording)
 
         # horizontal range
-        horizontal_range = -np.min([x[3] for x in recording])
+        horizontal_range = -np.min([x[3] for x in recording]) / 0.25019166
 
         # maximum altitude
-        maximum_altitude = np.max([x[2] for x in recording])
+        maximum_altitude = np.max([x[2] for x in recording]) / 0.18554402
 
         # number of flips
-        num_of_flips = np.sum(np.abs([recording[i][4] - recording[i-1][4] for i in range(1,len(recording))]))/(np.pi*2)
+        num_of_flips = np.sum(np.abs([recording[i][4] - recording[i-1][4] for i in range(1,len(recording))]))/(np.pi*2) / 0.33866545
         
         # distance to closest basket (gaussian fit)
-        dist_to_basket = np.exp(-3*np.linalg.norm([np.minimum(np.abs(recording[len(recording)-1][3] + 0.9), np.abs(recording[len(recording)-1][3] + 1.4)), recording[len(recording)-1][2]+0.85]))
+        dist_to_basket = np.exp(-3*np.linalg.norm([np.minimum(np.abs(recording[len(recording)-1][3] + 0.9), np.abs(recording[len(recording)-1][3] + 1.4)), recording[len(recording)-1][2]+0.85])) / 0.17801466
 
         return [horizontal_range, maximum_altitude, num_of_flips, dist_to_basket]
 
@@ -362,20 +362,19 @@ class Fetch(FetchSimulation):
     def get_features(self):
         recording = self.get_recording(all_info=False)
         recording = np.array(recording)
-        f1 = np.mean(recording[:,0])
-        f2 = np.mean(recording[:,1])
-        f3 = np.mean(recording[:,2])
-        f4 = np.mean(recording[:,3])
+        f1 = np.mean(recording[:,0]) / 1.43015959
+        f2 = np.mean(recording[:,1]) / 1.58021447
+        f3 = np.mean(recording[:,2]) / 2.27514504
+        f4 = np.mean(recording[:,3]) / 1.27929994
 
         return [f1, f2, f3, f4]
 
     @property
     def state(self):
-        assert False
-        return -1
+        return self.sim.sim.get_state()
     @state.setter
     def state(self, value):
-        assert False
+        self.sim.sim.set_state(value)
 
     def set_ctrl(self, value):
         arr = [[0]*self.input_size]*self.total_time
