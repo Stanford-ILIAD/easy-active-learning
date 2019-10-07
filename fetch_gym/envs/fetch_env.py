@@ -50,7 +50,7 @@ class FetchEnv(robot_env.RobotEnv):
             self.type = None
 
         super(FetchEnv, self).__init__(
-            model_path=model_path, n_substeps=n_substeps, n_actions=7,
+            model_path=model_path, n_substeps=n_substeps, n_actions=3,
             initial_qpos=initial_qpos)
 
     # GoalEnv methods
@@ -101,8 +101,8 @@ class FetchEnv(robot_env.RobotEnv):
         pos_ctrl, gripper_ctrl = action[:3], 0
 
         pos_ctrl *= 0.05  # limit maximum change in position
-        # rot_ctrl = [1., 0., 1., 0.]  # fixed rotation of the end effector, expressed as a quaternion
-        rot_ctrl = action[3:]
+        rot_ctrl = [1., 0., 1., 0.]  # fixed rotation of the end effector, expressed as a quaternion
+        # rot_ctrl = action[3:]
         gripper_ctrl = np.array([gripper_ctrl, gripper_ctrl])
         assert gripper_ctrl.shape == (2,)
         if self.block_gripper:

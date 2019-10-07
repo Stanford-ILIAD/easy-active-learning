@@ -7,6 +7,7 @@ def volume_objective_psi(psi_set, w_samples, delta_samples):
 	p1 = 1/(1+np.exp(delta_samples - dR))
 	p2 = 1/(1+np.exp(delta_samples + dR))
 	p_Upsilon = (np.exp(2*delta_samples) - 1) * p1 * p2
+
 	return p1.sum(axis=0)**2 + p2.sum(axis=0)**2 + p_Upsilon.sum(axis=0)**2
 	
 def information_objective_psi(psi_set, w_samples, delta_samples):
@@ -17,7 +18,8 @@ def information_objective_psi(psi_set, w_samples, delta_samples):
 	p2 = 1/(1+np.exp(delta_samples + dR))
 	p_Upsilon = (np.exp(2*delta_samples) - 1) * p1 * p2
 	
-	if delta_samples.sum(axis=0) > 0:
+
+	if delta_samples.sum(axis=0) > 0: # hacky way to say if queries are weak preference queries -- the function had better take query_type as input
 		return -1.0/M * (np.sum(p1*np.log2(M*p1 / p1.sum(axis=0)), axis=0) + np.sum(p2*np.log2(M*p2 / p2.sum(axis=0)), axis=0) + np.sum(p_Upsilon*np.log2(M*p_Upsilon / p_Upsilon.sum(axis=0)), axis=0))
 	else:
 		return -1.0/M * (np.sum(p1*np.log2(M*p1 / p1.sum(axis=0)), axis=0) + np.sum(p2*np.log2(M*p2 / p2.sum(axis=0)), axis=0))
@@ -74,27 +76,26 @@ def optimize_discrete(simulation_object, w_samples, delta_samples, func):
 	psi_set = data['psi_set']
 	f_values = func(psi_set, w_samples, delta_samples)
 	id_input = np.argmin(f_values)
-	print('ID = ' + str(id_input))
-	print('pss = ' + str(psi_set[id_input]))
 	return inputs_set[id_input,:z], inputs_set[id_input,z:], np.abs(f_values[id_input])
 
 def volume(simulation_object, w_samples, delta_samples):
-	#return optimize(simulation_object, w_samples, delta_samples, volume_objective)
+	#return optimize(simulation_object, w_samples, delta_samples, volume_objective) # uncomment for continuous optimization (might take too long per query)
 	return optimize_discrete(simulation_object, w_samples, delta_samples, volume_objective_psi)
 	
 def information(simulation_object, w_samples, delta_samples):
-	#return optimize(simulation_object, w_samples, delta_samples, information_objective)
+	#return optimize(simulation_object, w_samples, delta_samples, information_objective) # uncomment for continuous optimization (might take too long per query)
 	return optimize_discrete(simulation_object, w_samples, delta_samples, information_objective_psi)
 
 def random(simulation_object):
-	data = np.load('ctrl_samples/' + simulation_object.name + '.npz')
-	inputs_set = data['inputs_set']
-	id_input = np.random.choice(inputs_set.shape[0])
-	return inputs_set[id_input,:z], inputs_set[id_input,z:], np.inf
-
-def random_continuous(simulation_object):
 	lower_input_bound = [x[0] for x in simulation_object.feed_bounds]
 	upper_input_bound = [x[1] for x in simulation_object.feed_bounds]
 	input_A = np.random.uniform(low=2*lower_input_bound, high=2*upper_input_bound, size=(2*simulation_object.feed_size))
 	input_B = np.random.uniform(low=2*lower_input_bound, high=2*upper_input_bound, size=(2*simulation_object.feed_size))
 	return input_A, input_B, np.inf
+
+def random_discrete(simulation_object): # just in case we want random queries to come from the same query database
+	z = simulation_object.feed_size
+	data = np.load('ctrl_samples/' + simulation_object.name + '.npz')
+	inputs_set = data['inputs_set']
+	id_input = np.random.choice(inputs_set.shape[0])
+	return inputs_set[id_input,:z], inputs_set[id_input,z:], np.inf

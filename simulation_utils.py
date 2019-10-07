@@ -1,57 +1,36 @@
 import numpy as np
 import scipy.optimize as opt
 import algos
-from models import Driver, LunarLander, MountainCar, Swimmer, Tosser, LDS, Fetch
+from models import LDS, Driver, Tosser, Fetch
 
-# w_driver = [0.32869792, -0.13381809, 0.34833876, -0.67377869]
-def simulate_human(phi_A, phi_B, w, delta, query_type):
-	p = np.random.rand()
-	if query_type == 'strong':
-		delta = 0
-	pA = 1. / (1 + np.exp(delta - w.dot(phi_A - phi_B)))
-	pB = 1. / (1 + np.exp(delta + w.dot(phi_A - phi_B)))
-	print('pA = ' + str(pA))
-	print('p0 = ' + str(1-pA-pB))
-	print('pB = ' + str(pB))
-	if p < pA:
-		return -1
-	elif p < pA + pB:
-		return 1
-	assert query_type == 'weak', 'Probably a numerical error in human simulation'
-	return 0
-	
 
-def get_feedback(simulation_object, input_A, input_B, query_type, true_w=None, true_delta=None):
+def get_feedback(simulation_object, input_A, input_B, query_type):
 	simulation_object.feed(input_A)
 	phi_A = np.array(simulation_object.get_features())
 	simulation_object.feed(input_B)
 	phi_B = np.array(simulation_object.get_features())
 	psi = phi_A - phi_B
 	s = -2
-	if true_w is None:
-		while s==-2:
-			if query_type == 'weak':
-				selection = input('A/B to watch, 1/2 to vote, 0 for IDK: ').lower()
-			elif query_type == 'strong':
-				selection = input('A/B to watch, 1/2 to vote: ').lower()
-			else:
-				print('There is no query type called ' + query_type)
-				exit(0)
-			if selection == 'a':
-				simulation_object.feed(input_A)
-				simulation_object.watch(1)
-			elif selection == 'b':
-				simulation_object.feed(input_B)
-				simulation_object.watch(1)
-			elif selection == '0' and query_type == 'weak':
-				s = 0
-			elif selection == '1':
-				s = -1
-			elif selection == '2':
-				s = 1
-	else:
-		s = simulate_human(phi_A, phi_B, true_w, true_delta, query_type)
-	print(s)
+	while s==-2:
+		if query_type == 'weak':
+			selection = input('A/B to watch, 1/2 to vote, 0 for "About Equal": ').lower()
+		elif query_type == 'strict':
+			selection = input('A/B to watch, 1/2 to vote: ').lower()
+		else:
+			print('There is no query type called ' + query_type)
+			exit(0)
+		if selection == 'a':
+			simulation_object.feed(input_A)
+			simulation_object.watch(1)
+		elif selection == 'b':
+			simulation_object.feed(input_B)
+			simulation_object.watch(1)
+		elif selection == '0' and query_type == 'weak':
+			s = 0
+		elif selection == '1':
+			s = -1
+		elif selection == '2':
+			s = 1
 	return phi_A, phi_B, s
 
 
@@ -60,12 +39,6 @@ def create_env(task):
 		return LDS()
 	elif task == 'driver':
 		return Driver()
-	elif task == 'lunarlander':
-		return LunarLander()
-	elif task == 'mountaincar':
-		return MountainCar()
-	elif task == 'swimmer':
-		return Swimmer()
 	elif task == 'tosser':
 		return Tosser()
 	elif task == 'fetch':

@@ -35,7 +35,7 @@ class Sampler:
 			return -np.inf
 		return np.sum([self.logp(i, w, delta) for i in range(len(self.a))])
 		
-	def sample(self, sample_count, query_type, burn=1000, thin=20, step_size=0.1):
+	def sample(self, sample_count, query_type, burn=1000, thin=50, step_size=0.1):
 		if query_type == 'weak':
 			x = np.array([0]*self.phi_num + [1]).reshape(1,-1)
 			old_logprob = self.logprob(x[0,:self.phi_num], x[0,-1])
@@ -49,7 +49,7 @@ class Sampler:
 					x = np.vstack((x,x[-1]))
 			x = x[burn+thin-1::thin]
 			return x[:,:self.phi_num], x[:,-1]
-		elif query_type == 'strong':
+		elif query_type == 'strict':
 			x = np.array([0]*self.phi_num).reshape(1,-1)
 			old_logprob = self.logprob(x[0], 0)
 			for _ in range(burn + thin*sample_count):
@@ -66,9 +66,9 @@ class Sampler:
 			print('There is no query type called ' + query_type)
 			exit(0)
 
-	def sample_given_delta(self, sample_count, query_type, delta, burn=1000, thin=20, step_size=0.1):
-		assert query_type in ['strong','weak'], 'There is no query type called ' + query_type
-		if query_type == 'strong':
+	def sample_given_delta(self, sample_count, query_type, delta, burn=1000, thin=50, step_size=0.1):
+		assert query_type in ['strict','weak'], 'There is no query type called ' + query_type
+		if query_type == 'strict':
 			delta = 0
 		assert delta >= 0
 

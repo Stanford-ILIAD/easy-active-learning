@@ -75,123 +75,10 @@ class LDSSimulation(Simulation):
         traj = self.get_trajectory(all_info=all_info)
         return traj[self.recording_time[0]:self.recording_time[1]]
 
-
-class MujocoSimulation(Simulation):
-    def __init__(self, name, total_time=1000, recording_time=[0,1000]):
-        super(MujocoSimulation, self).__init__(name, total_time=total_time, recording_time=recording_time)
-        self.model = load_model_from_path('mujoco_xmls/' + name + '.xml')
-        self.sim = MjSim(self.model)
-        self.initial_state = self.sim.get_state()
-        self.input_size = len(self.sim.data.ctrl)
-        self.reset()
-        self.viewer = None
-
-    def reset(self):
-        super(MujocoSimulation, self).reset()
-        self.sim.set_state(self.initial_state)
-
-    def run(self, reset=True):
-        if reset:
-            self.reset()
-        self.sim.set_state(self.initial_state)
-        for i in range(self.total_time):
-            self.sim.data.ctrl[:] = self.ctrl_array[i]
-            self.sim.step()
-            self.trajectory.append(self.sim.get_state())
-        self.alreadyRun = True
-
-    def get_trajectory(self, all_info=True):
-        if not self.alreadyRun:
-            self.run()
-        if all_info:
-            return self.trajectory.copy()
-        else:
-            return [x.qpos for x in self.trajectory]
-
-    def get_recording(self, all_info=True):
-        traj = self.get_trajectory(all_info=all_info)
-        return traj[self.recording_time[0]:self.recording_time[1]]
-
-    def watch(self, repeat_count=4):
-        if self.viewer is None:
-            self.viewer = MjViewer(self.sim)
-        for _ in range(repeat_count):
-            self.sim.set_state(self.initial_state)
-            for i in range(self.total_time):
-                self.sim.data.ctrl[:] = self.ctrl_array[i]
-                self.sim.step()
-                self.viewer.render()
-        self.run(reset=False) # so that the trajectory will be compatible with what user watches
+    def watch(self, repeat_count=1):
+        print('Features: ' + str(self.get_features()))
 
 
-
-
-class GymSimulation(Simulation):
-    def __init__(self, name, total_time=200, recording_time=[0,200]):
-        super(GymSimulation, self).__init__(name, total_time=total_time, recording_time=recording_time)
-        self.sim = gym.make(name)
-        self.seed_value = 0
-        self.reset_seed()
-        self.sim.reset()
-        self.done = False
-        self.initial_state = None
-        self.input_size = len(self.sim.action_space.low)
-        self.effective_total_time = total_time
-        self.effective_recording_time = recording_time.copy()
-        # child class will call reset(), because it knows what state_size is
-
-    def reset(self):
-        super(GymSimulation, self).reset()
-        self.state = self.initial_state
-
-    def run(self, reset=False): # I keep reset variable for the compatilibity with mujoco wrapper
-        self.state = self.initial_state
-        self.trajectory = []
-        for i in range(self.total_time):
-            temp = self.sim.step(np.array(self.ctrl_array[i]))
-            self.done = temp[2]
-            self.trajectory.append(self.state)
-            if self.done:
-                break
-        self.effective_total_time = len(self.trajectory)
-        self.effective_recording_time[1] = min(self.effective_total_time, self.recording_time[1])
-        self.alreadyRun = True
-
-    # I keep all_info variable for the compatibility with mujoco wrapper
-    def get_trajectory(self, all_info=True):
-        if not self.alreadyRun:
-            self.run()
-        return self.trajectory.copy()
-
-    def get_recording(self, all_info=True):
-        traj = self.get_trajectory(all_info=all_info)
-        return traj[self.effective_recording_time[0]:self.effective_recording_time[1]]
-
-    def watch(self, repeat_count=4):
-        for _ in range(repeat_count):
-            self.state = self.initial_state
-            for i in range(self.total_time):
-                temp = self.sim.step(np.array(self.ctrl_array[i]))
-                self.sim.render()
-                time.sleep(self.frame_delay_ms/1000.0)
-                self.done = temp[2]
-                if self.done:
-                    break
-        self.run() # so that the trajectory will be compatible with what user watches
-        #self.sim.close() # this thing prevents any further viewing, pff.
-
-    def close(self): # run only when you dont need the simulation anymore
-        self.sim.close()
-
-    @property
-    def seed(self):
-        return self.seed_value
-    @seed.setter
-    def seed(self, value=0):
-        self.seed_value = value
-        self.sim.seed(self.seed_value)
-    def reset_seed(self):
-        self.sim.seed(self.seed_value)
 
 
 
@@ -276,6 +163,56 @@ class DrivingSimulation(Simulation):
 
 
 
+class MujocoSimulation(Simulation):
+    def __init__(self, name, total_time=1000, recording_time=[0,1000]):
+        super(MujocoSimulation, self).__init__(name, total_time=total_time, recording_time=recording_time)
+        self.model = load_model_from_path('mujoco_xmls/' + name + '.xml')
+        self.sim = MjSim(self.model)
+        self.initial_state = self.sim.get_state()
+        self.input_size = len(self.sim.data.ctrl)
+        self.reset()
+        self.viewer = None
+
+    def reset(self):
+        super(MujocoSimulation, self).reset()
+        self.sim.set_state(self.initial_state)
+
+    def run(self, reset=True):
+        if reset:
+            self.reset()
+        self.sim.set_state(self.initial_state)
+        for i in range(self.total_time):
+            self.sim.data.ctrl[:] = self.ctrl_array[i]
+            self.sim.step()
+            self.trajectory.append(self.sim.get_state())
+        self.alreadyRun = True
+
+    def get_trajectory(self, all_info=True):
+        if not self.alreadyRun:
+            self.run()
+        if all_info:
+            return self.trajectory.copy()
+        else:
+            return [x.qpos for x in self.trajectory]
+
+    def get_recording(self, all_info=True):
+        traj = self.get_trajectory(all_info=all_info)
+        return traj[self.recording_time[0]:self.recording_time[1]]
+
+    def watch(self, repeat_count=4):
+        if self.viewer is None:
+            self.viewer = MjViewer(self.sim)
+        for _ in range(repeat_count):
+            self.sim.set_state(self.initial_state)
+            for i in range(self.total_time):
+                self.sim.data.ctrl[:] = self.ctrl_array[i]
+                self.sim.step()
+                self.viewer.render()
+        self.run(reset=False) # so that the trajectory will be compatible with what user watches
+
+
+
+
 class FetchSimulation(Simulation):
     def __init__(self, total_time=152, recording_time=[0,152]):
         super(FetchSimulation, self).__init__(name='Fetch', total_time=total_time, recording_time=recording_time)
@@ -327,7 +264,7 @@ class FetchSimulation(Simulation):
                 if self.done:
                     break
         self.run() # so that the trajectory will be compatible with what user watches
-        #self.sim.close() # this thing prevents any further viewing, pff.
+        #self.sim.close() # this  prevents any further viewing, pff.
 
     def close(self): # run only when you dont need the simulation anymore
         self.sim.close()

@@ -70,8 +70,7 @@ class Visualizer(object):
             sprite = pyglet.sprite.Sprite(centered_image('imgs/{}.png'.format(name)), subpixel=True)
             sprite.scale = scale
             return sprite
-        self.sprites = {c: car_sprite(c) for c in ['red', 'yellow', 'purple', 'white', 'orange', 'gray', 'blue']}
-        self.obj_sprites = {c: object_sprite(c) for c in ['cone', 'firetruck']}
+        self.sprites = {c: car_sprite(c) for c in ['white', 'orange']}
     def use_world(self, world):
         self.cars = [c for c in world.cars]
         self.lanes = [c for c in world.lanes]
@@ -211,16 +210,11 @@ class Visualizer(object):
             np.hstack([lane.p-lane.m*W-0.5*lane.w*lane.n, lane.p+lane.m*W-0.5*lane.w*lane.n,
                        lane.p-lane.m*W+0.5*lane.w*lane.n, lane.p+lane.m*W+0.5*lane.w*lane.n])
         ))
-    def draw_car(self, x, color='yellow', opacity=255):
+    def draw_car(self, x, color='orange', opacity=255):
         sprite = self.sprites[color]
         sprite.x, sprite.y = x[0], x[1]
         sprite.rotation = -x[2]*180./math.pi
         sprite.opacity = opacity
-        sprite.draw()
-    def draw_object(self, obj):
-        sprite = self.obj_sprites[obj.name]
-        sprite.x, sprite.y = obj.x[0], obj.x[1]
-        sprite.rotation = obj.x[2] if len(obj.x)>=3 else 0.
         sprite.draw()
     def on_draw(self):
         self.window.clear()

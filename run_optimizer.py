@@ -1,9 +1,9 @@
 from simulation_utils import create_env, compute_best, play
 import sys
 
-task = 'Tosser'
-w = [0.39885564, 0.05660242, -0.15491889, 0.70144939]
-iter_count = 5  # the optimization is nonconvex, so you can specify the number of random starting points
+task = sys.argv[1].lower()
+iter_count = int(sys.argv[2]) # the optimization is nonconvex, so you can specify the number of random starting points
+w = [float(x) for x in sys.argv[3:]]
 
 ##### YOU DO NOT NEED TO MODIFY THE CODE BELOW THIS LINE #####
 
