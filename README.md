@@ -1,5 +1,5 @@
 Companion code to CoRL 2019 paper:
-E Bıyık, D Sadigh. **"Asking Easy Questions: A User-Friendly Approach to Active Reward Learning"**. *3rd Conference on Robot Learning (CoRL)*, Osaka, Japan, Oct. 2019.
+E Bıyık, M Palan, NC Landolfi, DP Losey, D Sadigh. **"Asking Easy Questions: A User-Friendly Approach to Active Reward Learning"**. *3rd Conference on Robot Learning (CoRL)*, Osaka, Japan, Oct. 2019.
 
 This code learns reward functions from human preferences in various tasks by actively generating queries to the human user based on maximum information gain. It also simulates maximum volume removal and random querying as baselines.
 
